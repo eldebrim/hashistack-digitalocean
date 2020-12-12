@@ -1,11 +1,26 @@
 # modules/client-droplet/main.tf
 # Create droplets and install consul and nomad in client mode
 
+terraform {
+  required_providers {
+    digitalocean = {
+      source  = "digitalocean/digitalocean"
+      version = "1.22.2"
+    }
+  }
+  required_version = ">= 0.12"
+}
+
 variable "ssh_fingerprint" {
   description = "SSH fingerprint to enable"
 }
 
+variable "pvt_key" {
+  description = "SSH fingerprint to enable"
+}
+
 variable "client_count" {
+  type = number
   description = "Number of clients to create"
 }
 
@@ -15,28 +30,29 @@ variable "consul_server_ip" {
 
 #null resource to ensure dependency of server module
 resource "null_resource" "dependency_manager" {
-  triggers {
+  triggers = {
     dependency_id = "${var.consul_server_ip}"
   }
 }
 
-# Create a new Web Droplet in the lon1 region
+# Create a new Web Droplet in the sfo3 region
 resource "digitalocean_droplet" "client" {
-  count              = "${var.client_count}"
+  count              = var.client_count
   name               = "client-${count.index + 1}"
   image              = "ubuntu-18-04-x64"
-  region             = "lon1"
-  size               = "512mb"
+  region             = "sfo3"
+  size               = "s-1vcpu-1gb"
   private_networking = true
-  ssh_keys = ["${var.ssh_fingerprint}"]
+  ssh_keys           = [var.ssh_fingerprint]
 
   depends_on = ["null_resource.dependency_manager"]
 
   connection {
-    type         = "ssh"
-    user         = "root"
-    host         = "${self.ipv4_address}"
-    agent        = true
+    type  = "ssh"
+    user  = "root"
+    private_key = file(var.pvt_key)
+    host  = self.ipv4_address
+    agent = true
   }
 
   # Copy files to remote server
@@ -90,5 +106,5 @@ resource "digitalocean_droplet" "client" {
 }
 
 output "client_ids" {
-  value = "${digitalocean_droplet.client.*.id}"
+  value = digitalocean_droplet.client.*.id
 }

@@ -1,29 +1,45 @@
 # modules/server-droplet/main.tf
 # Create droplets and install consul and nomad in server mode
 
+terraform {
+  required_providers {
+    digitalocean = {
+      source  = "digitalocean/digitalocean"
+      version = "1.22.2"
+    }
+  }
+  required_version = ">= 0.12"
+}
+
 variable "ssh_fingerprint" {
   description = "SSH fingerprint to enable"
 }
 
+variable "pvt_key" {
+  description = "SSH fingerprint to enable"
+}
+
 variable "server_count" {
+  type = number
   description = "Number of servers to create"
 }
 
-# Create a new Web Droplet in the lon1 region
+# Create a new Web Droplet in the sfo region
 resource "digitalocean_droplet" "server" {
-  count              = "${var.server_count}"
+  count              = var.server_count
   name               = "server-${count.index + 1}"
   image              = "ubuntu-18-04-x64"
-  region             = "lon1"
-  size               = "512mb"
+  region             = "sfo3"
+  size               = "s-1vcpu-1gb"
   private_networking = true
-  ssh_keys = ["${var.ssh_fingerprint}"]
+  ssh_keys           = [var.ssh_fingerprint]
 
   connection {
-    type         = "ssh"
-    user         = "root"
-    host         = "${self.ipv4_address}"
-    agent        = true
+    type  = "ssh"
+    user  = "root"
+    private_key = file(var.pvt_key)
+    host  = self.ipv4_address
+    agent = true
   }
 
   # Copy files to remote server
@@ -40,7 +56,7 @@ resource "digitalocean_droplet" "server" {
 
   provisioner "file" {
     source      = "${path.root}/scripts/consul/consul-connect-enable.hcl"
-    destination = ""/root/consul-connect-enable.hcl"
+    destination = "/root/consul-connect-enable.hcl"
   }
 
   # Nomad files
@@ -145,7 +161,7 @@ resource "digitalocean_droplet" "server" {
   }
 
   provisioner "local-exec" {
-    command = "scp -o StrictHostKeyChecking=no root@${digitalocean_droplet.server.0.ipv4_address}:/root/startupOutput.txt /root/vaultDetails.txt"
+    command = "scp -o StrictHostKeyChecking=no root@${digitalocean_droplet.server.0.ipv4_address}:/root/startupOutput.txt $HOME/vaultDetails.txt"
   }
 
   # Install Nomad
@@ -168,18 +184,18 @@ resource "digitalocean_droplet" "server" {
   }
 
   provisioner "local-exec" {
-    command = "echo ${digitalocean_droplet.server.0.ipv4_address_private} > /root/private_server.txt"
+    command = "echo ${digitalocean_droplet.server.0.ipv4_address_private} > $HOME/private_server.txt"
   }
 
   provisioner "local-exec" {
-    command = "echo ${digitalocean_droplet.server.0.ipv4_address} > /root/public_server.txt"
+    command = "echo ${digitalocean_droplet.server.0.ipv4_address} > $HOME/public_server.txt"
   }
 }
 
 output "consul_server_ip" {
-  value = "${digitalocean_droplet.server.0.ipv4_address_private}"
+  value = digitalocean_droplet.server.0.ipv4_address_private
 }
 
 output "server_ids" {
-  value = ["${digitalocean_droplet.server.*.id}"]
+  value = digitalocean_droplet.server.*.id
 }

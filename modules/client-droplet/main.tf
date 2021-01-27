@@ -20,7 +20,7 @@ variable "pvt_key" {
 }
 
 variable "client_count" {
-  type = number
+  type        = number
   description = "Number of clients to create"
 }
 
@@ -48,11 +48,11 @@ resource "digitalocean_droplet" "client" {
   depends_on = ["null_resource.dependency_manager"]
 
   connection {
-    type  = "ssh"
-    user  = "root"
+    type        = "ssh"
+    user        = "root"
     private_key = file(var.pvt_key)
-    host  = self.ipv4_address
-    agent = true
+    host        = self.ipv4_address
+    agent       = true
   }
 
   # Copy files to remote server

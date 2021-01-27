@@ -22,7 +22,7 @@ provider "digitalocean" {
 module "server-droplet" {
   source          = "./modules/server-droplet"
   ssh_fingerprint = var.ssh_fingerprint
-  pvt_key = var.pvt_key
+  pvt_key         = var.pvt_key
   server_count    = var.server_count
   providers = {
     digitalocean = digitalocean
@@ -33,8 +33,8 @@ module "client-droplet" {
   source           = "./modules/client-droplet"
   ssh_fingerprint  = var.ssh_fingerprint
   client_count     = var.client_count
-  pvt_key = var.pvt_key
-  consul_server_ip = "${module.server-droplet.consul_server_ip}"
+  pvt_key          = var.pvt_key
+  consul_server_ip = module.server-droplet.consul_server_ip
 }
 
 module "load-balancer" {

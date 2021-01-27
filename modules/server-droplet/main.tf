@@ -20,7 +20,7 @@ variable "pvt_key" {
 }
 
 variable "server_count" {
-  type = number
+  type        = number
   description = "Number of servers to create"
 }
 
@@ -35,11 +35,11 @@ resource "digitalocean_droplet" "server" {
   ssh_keys           = [var.ssh_fingerprint]
 
   connection {
-    type  = "ssh"
-    user  = "root"
+    type        = "ssh"
+    user        = "root"
     private_key = file(var.pvt_key)
-    host  = self.ipv4_address
-    agent = true
+    host        = self.ipv4_address
+    agent       = true
   }
 
   # Copy files to remote server

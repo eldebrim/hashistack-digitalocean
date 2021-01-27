@@ -12,7 +12,7 @@ terraform {
 }
 
 variable "server_ids" {
-  type = list(number)
+  type        = list(number)
   description = "list of servers"
 }
 
@@ -21,7 +21,7 @@ variable "load_balancer_id" {
 }
 
 variable "bastion_id" {
-  type = number
+  type        = number
   description = "Droplet id of bastion host"
 }
 

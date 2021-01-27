@@ -1,5 +1,7 @@
 #! /bin/bash
 
+export CONSUL_VERSION=1.9.2
+
 echo "Installing Consul on server\n"
 
 # Install required packages
@@ -13,8 +15,8 @@ iptables -t nat -I PREROUTING -i docker0 -d 172.17.0.1 -p tcp -j DNAT --to 127.0
 iptables -t filter -I INPUT -i docker0 -d 127.0.0.1 -p tcp -j ACCEPT
 
 # Start install of consul and setup
-wget https://releases.hashicorp.com/consul/1.2.3/consul_1.2.3_linux_amd64.zip
-unzip consul_1.2.3_linux_amd64.zip
+wget https://releases.hashicorp.com/consul/${CONSUL_VERSION}/consul_${CONSUL_VERSION}_linux_amd64.zip
+unzip consul_${CONSUL_VERSION}_linux_amd64.zip
 cp consul /usr/bin/
 mkdir /etc/consul.d
 mkdir /tmp/consul
